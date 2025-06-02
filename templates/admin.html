@@ -1,0 +1,3703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Augment2Api-Panel</title>
+    <link rel="icon" href="../static/augment.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="../static/augment.svg" type="image/x-icon">
+    <style>
+        :root {
+            --primary-color: #4a6cf7;
+            --primary-hover: #3a5ce4;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --header-bg: #ffffff;
+            --header-color: #333333;
+            --sidebar-bg: #ffffff;
+            --sidebar-color: #333333;
+            --sidebar-hover: #f0f4ff;
+            --sidebar-active: #e6edff;
+            --footer-bg: #ffffff;
+            --footer-color: #6c757d;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
+            --radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            color: var(--header-color);
+            padding: 8px 20px;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            height: 40px; /* 固定高度 */
+        }
+
+        .header-content h1 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .dashboard {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 100px);
+            overflow: hidden;
+            margin: 0;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .sidebar {
+            width: 200px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-color);
+            transition: width 0.3s ease;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .sidebar-header h3 {
+            display: none;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, background-color 0.2s;
+            border-radius: 4px;
+        }
+
+        .toggle-btn:hover {
+            background-color: #f1f1f1;
+        }
+
+        .sidebar.collapsed .toggle-btn {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            border-radius: 4px;
+            margin: 2px 8px;
+        }
+
+        .menu-item:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--primary-color);
+        }
+
+        .menu-item.active {
+            background-color: var(--sidebar-active);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .menu-item i {
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .sidebar.collapsed .menu-item {
+            padding: 10px 8px;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .menu-item i {
+            margin-right: 0;
+            font-size: 20px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 15px 5px;
+        }
+
+        /* 主内容区样式优化 */
+        .main-content {
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .content-panel {
+            padding: 20px;
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .content-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 添加token列表容器样式，使其可滚动 */
+        .token-list-container {
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 10px;
+            position: relative;
+        }
+
+        /* 添加列表加载效果 */
+        .token-list-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+        
+        .token-list-loading .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 面板标题样式优化 */
+        .panel-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-title h2 {
+            margin: 0 0 0 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .panel-title i {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        .panel-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 按钮样式统一 */
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.secondary {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        button.secondary:hover {
+            background-color: #f8f9fa;
+        }
+
+        button.secondary i {
+            color: var(--text-color);
+        }
+
+        /* Token列表样式优化 */
+        .token-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .token-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+            margin-bottom: 10px;
+        }
+
+        .token-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .token-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .token-number {
+            width: 30px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .token-summary {
+            flex: 1;
+            font-family: monospace;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-remark {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: system-ui;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .token-remark:hover {
+            border-color: #1976d2;
+        }
+
+        .token-remark.empty {
+            background-color: #f5f5f5;
+            color: #9e9e9e;
+        }
+
+        .token-remark input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: inherit;
+            font-family: inherit;
+            color: inherit;
+            width: 100%;
+            min-width: 100px;
+        }
+
+        .token-usage-count {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-size: 13px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        /* 根据使用次数变化颜色 - 只应用于数字 */
+        .token-usage-count .low {
+            color: #28a745; /* 绿色 - 使用次数少 */
+        }
+        
+        .token-usage-count .medium {
+            color: #ffc107; /* 黄色 - 使用次数中等 */
+        }
+        
+        .token-usage-count .high {
+            color: #dc3545; /* 红色 - 使用次数多 */
+        }
+
+        .token-toggle {
+            margin-left: 10px;
+            transition: transform 0.3s;
+        }
+
+        .token-toggle.open i {
+            transform: rotate(180deg);
+        }
+
+        .token-details {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background-color: #ffffff;
+        }
+
+        .token-details.open {
+            padding: 15px;
+            max-height: 400px;
+            border-top: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .token-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .token-display {
+            padding: 8px 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            word-break: break-all;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .token-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .delete-token {
+            background-color: var(--error-color);
+        }
+
+        .delete-token:hover {
+            background-color: #c82333;
+        }
+
+        /* Token控制界面样式 */
+        .token-control-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .token-control-row {
+            margin-bottom: 15px;
+        }
+
+        .token-switch {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .token-switch input[type="checkbox"] {
+            display: none;
+        }
+
+        .token-switch .slider {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 24px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        .token-switch .slider:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .token-switch input[type="checkbox"]:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        .token-switch input[type="checkbox"]:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .switch-label {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .token-limits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .limit-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .limit-item label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .limit-item input {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .limit-item input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .token-usage-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .usage-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .token-control-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .save-limits {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .save-limits:hover {
+            background-color: #218838;
+        }
+
+        /* 数据清理按钮样式 */
+        .cleanup-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+
+        .cleanup-btn:hover {
+            background-color: #c82333;
+        }
+
+        .cleanup-btn.loading {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 清理模态框样式 */
+        .cleanup-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .cleanup-modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+        }
+
+        .cleanup-options {
+            margin: 20px 0;
+        }
+
+        .cleanup-option {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .cleanup-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .cleanup-option.selected {
+            background-color: #e3f2fd;
+            border-color: var(--primary-color);
+        }
+
+        .cleanup-option h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .cleanup-option p {
+            margin: 0;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .cleanup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .cleanup-confirm {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .cleanup-cancel {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 系统配置面板样式 */
+        .config-container {
+            padding: 20px;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .config-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .config-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            transition: box-shadow 0.3s;
+        }
+
+        .config-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .config-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .config-key {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .config-category {
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .config-description {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .config-value {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .config-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .config-save {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .config-save:hover {
+            background-color: #218838;
+        }
+
+        .config-test-proxy {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .config-test-proxy:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .config-test-proxy:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* 代理测试模态框样式 */
+        .proxy-test-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .proxy-test-modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .proxy-test-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .proxy-test-header h3 {
+            margin: 0;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .proxy-test-body {
+            padding: 20px;
+        }
+
+        .test-summary {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .test-summary.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-summary.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .test-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .test-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .test-details h4 {
+            margin: 0 0 15px 0;
+            color: var(--text-color);
+        }
+
+        .test-results-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .test-result-item {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .test-result-item.success {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+
+        .test-result-item.error {
+            border-color: #dc3545;
+            background-color: #fff8f8;
+        }
+
+        .test-result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .test-icon {
+            font-size: 16px;
+        }
+
+        .test-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .test-duration {
+            font-size: 12px;
+            color: #666;
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .test-result-message {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .test-result-details {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .test-result-details small {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .test-result-details .error-text {
+            color: #dc3545;
+        }
+
+        .proxy-test-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: right;
+        }
+
+        .proxy-test-footer button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .proxy-test-footer button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* 数据库管理面板样式 */
+        .database-container {
+            padding: 20px;
+        }
+
+        .database-stats {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .database-stats h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .database-actions {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .database-actions h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* 数据库详情样式 */
+        .database-details {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .database-details h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .database-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .database-filters select {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .details-table th,
+        .details-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .details-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: var(--primary-color);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .details-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .key-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-width: 200px;
+            word-break: break-all;
+        }
+
+        .value-cell {
+            max-width: 300px;
+            word-break: break-word;
+        }
+
+        .json-value {
+            background-color: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .category-tokens {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .category-configs {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .category-usage {
+            background-color: #e8f5e8;
+            color: #388e3c;
+        }
+
+        .category-status {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .category-other {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+
+        .size-info {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .details-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .no-details {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .loading-details {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        /* 分页控件样式优化 */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pagination-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: var(--radius);
+            padding: 6px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .pagination-btn:hover:not([disabled]) {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .pagination-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #page-info {
+            margin: 0 15px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .page-size-select {
+            margin-left: 15px;
+            padding: 6px 8px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            background-color: white;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* 页脚样式优化 */
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: var(--footer-bg);
+            color: var(--footer-color);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式设计优化 */
+        @media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+                height: auto;
+                padding: 10px;
+            }
+            
+            .sidebar {
+                width: 100% !important;
+                margin-bottom: 15px;
+                max-height: 200px;
+            }
+            
+            .main-content {
+                height: calc(100vh - 300px);
+                overflow-y: auto;
+            }
+            
+            .content-panel {
+                padding: 15px;
+                max-height: none;
+            }
+            
+            .sidebar.collapsed .menu-text {
+                display: inline;
+            }
+            
+            .toggle-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .token-display {
+                max-width: 100%;
+                white-space: nowrap;
+            }
+        }
+
+        @media (min-width: 1201px) {
+            .token-display {
+                white-space: normal;
+            }
+        }
+
+        .token-details.open .token-display {
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        /* 添加Token面板样式优化 */
+        .auth-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            padding-bottom: 20px;
+        }
+
+        .step {
+            background-color: #f8f9fa;
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .step h3 {
+            display: flex;
+            align-items: center;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .step p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-family: monospace;
+            min-height: 100px;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+
+        .error {
+            color: var(--error-color);
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success {
+            color: var(--success-color);
+            margin: 10px 0;
+            display: none;
+        }
+
+        button:not(.secondary):not(.pagination-btn):not(.toggle-btn) i {
+            color: white;
+        }
+
+        /* 刷新按钮加载动画 */
+        .refresh-btn, #check-all-tokens {
+            position: relative;
+        }
+        
+        .refresh-btn i, #check-all-tokens i {
+            transition: transform 0.3s ease;
+        }
+        
+        .refresh-btn.loading i, #check-all-tokens.loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 禁用状态 */
+        .refresh-btn.loading, #check-all-tokens.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* 检测结果样式 */
+        .check-result {
+            color: var(--success-color);
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: var(--radius);
+            padding: 10px 15px;
+            margin: 10px 0;
+            display: none;
+        }
+
+
+        /* 弹出输入框样式 */
+        .remark-input-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .remark-input-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 250px;
+        }
+
+        .remark-input-container h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .remark-input-container input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .remark-input-container .char-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            text-align: right;
+        }
+
+        .remark-input-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Token模糊化样式 */
+        .token-blur {
+            filter: blur(3px);
+            transition: all 0.3s ease;
+        }
+
+        .token-blur:hover {
+            filter: blur(0);
+        }
+
+        /* 删除背景颜色变化样式 */
+        #toggle-token-visibility.active i {
+            color: var(--primary-color);
+        }
+        
+        /* 冷却状态图标样式 */
+        .cool-status {
+            color: #1e88e5;
+            font-size: 18px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        
+        .cool-status-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .cool-status-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+        
+        .cool-status-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Cloudflare Workers样式 */
+        .cf-workers-container {
+            padding: 20px;
+        }
+
+        .cf-workers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .worker-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .worker-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .worker-info {
+            flex: 1;
+        }
+
+        .worker-info h4 {
+            margin: 0 0 8px 0;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .worker-url {
+            margin: 5px 0;
+            color: var(--primary-color);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .worker-description {
+            margin: 5px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .worker-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .worker-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-test {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-test:hover {
+            background-color: #218838;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        .no-workers {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+    <!-- 添加图标 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Augment面板｜v1.0.6</h1>
+                <button id="logout-btn" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> 登出
+                </button>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <!-- 左侧导航栏 -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3>面板功能导航</h3>
+                    <button id="toggle-sidebar" class="toggle-btn">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </div>
+                <div class="sidebar-menu">
+                    <div class="menu-item active" data-target="token-list-panel">
+                        <i class="bi bi-list-ul"></i>
+                        <span class="menu-text">Token列表</span>
+                    </div>
+                    <div class="menu-item" data-target="token-add-panel">
+                        <i class="bi bi-plus-circle"></i>
+                        <span class="menu-text">添加Token</span>
+                    </div>
+                    <div class="menu-item" data-target="system-config-panel">
+                        <i class="bi bi-gear"></i>
+                        <span class="menu-text">系统配置</span>
+                    </div>
+                    <div class="menu-item" data-target="cf-workers-panel">
+                        <i class="bi bi-cloud"></i>
+                        <span class="menu-text">CF Workers</span>
+                    </div>
+                    <div class="menu-item" data-target="database-management-panel">
+                        <i class="bi bi-database"></i>
+                        <span class="menu-text">数据库管理</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧主内容区 -->
+            <div class="main-content" id="main-content">
+                <!-- Token列表面板 -->
+                <div class="content-panel active" id="token-list-panel">
+                    <div class="panel-title">
+                        <i class="bi bi-key-fill"></i>
+                        <h2>Token列表</h2>
+                        <div class="panel-actions">
+                            <button id="toggle-token-visibility" class="secondary">
+                                <i class="bi bi-eye-slash"></i> 隐藏Token
+                            </button>
+                            <button id="refresh-token" class="refresh-btn">
+                                <i class="bi bi-arrow-clockwise"></i> 刷新列表
+                            </button>
+                            <button id="check-all-tokens"><i class="bi bi-shield-check btn-icon"></i> <span class="btn-text">批量检测</span></button>
+                            <button id="cleanup-database" class="cleanup-btn"><i class="bi bi-trash3 btn-icon"></i> <span class="btn-text">数据清理</span></button>
+                        </div>
+                    </div>
+                    
+                    <!-- 添加可滚动容器 -->
+                    <div class="token-list-container">
+                        <div id="token-list">加载中...</div>
+                    </div>
+                    
+                    <!-- 分页控件 -->
+                    <div class="pagination-container" id="pagination-container">
+                        <button class="pagination-btn" id="prev-page" disabled><i class="bi bi-chevron-left"></i></button>
+                        <span id="page-info">第 <span id="current-page">1</span> 页，共 <span id="total-pages">1</span> 页</span>
+                        <button class="pagination-btn" id="next-page"><i class="bi bi-chevron-right"></i></button>
+                        <select id="page-size" class="page-size-select">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 添加Token面板 -->
+                <div class="content-panel" id="token-add-panel">
+                    <div class="panel-title">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <h2>授权获取Token</h2>
+                    </div>
+
+                    <div class="auth-steps">
+                        <div class="step">
+                            <h3><span class="step-number">1</span> 获取授权地址</h3>
+                            <p>点击下方按钮获取授权地址，然后在浏览器中打开该地址进行授权。</p>
+                            <button id="get-auth-url"><i class="bi bi-link-45deg" class="btn-icon"></i> <span class="btn-text">获取授权地址</span></button>
+                            <div id="auth-url" class="token-display" style="display: none;"></div>
+                        </div>
+
+                        <div class="step">
+                            <h3><span class="step-number">2</span> 提交授权响应</h3>
+                            <p>完成授权后，将获得的授权响应粘贴到下面的文本框中：</p>
+                            <textarea id="auth-response" placeholder='{"code":"_000baec407c57c4bf9xxxxxxxxxxxxxx","state":"0uXxxxxxxxx","tenant_url":"https://dxx.api.augmentcode.com/"}'></textarea>
+                            <div id="validation-message" class="error"></div>
+                            <button id="submit-auth"><i class="bi bi-check2-circle" class="btn-text"></i> <span class="btn-text">获取Token</span></button>
+                            <div id="submit-result" class="success"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 系统配置面板 -->
+                <div class="content-panel" id="system-config-panel">
+                    <div class="panel-title">
+                        <i class="bi bi-gear"></i>
+                        <h2>系统配置</h2>
+                    </div>
+
+                    <div class="config-container">
+                        <div class="config-actions">
+                            <button id="refresh-configs" class="btn-primary">
+                                <i class="bi bi-arrow-clockwise"></i> 刷新配置
+                            </button>
+                            <button id="export-configs" class="btn-secondary">
+                                <i class="bi bi-download"></i> 导出配置
+                            </button>
+                            <button id="import-configs" class="btn-secondary">
+                                <i class="bi bi-upload"></i> 导入配置
+                            </button>
+                        </div>
+
+                        <div id="config-list" class="config-list">
+                            <!-- 配置项将在这里动态加载 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cloudflare Workers面板 -->
+                <div class="content-panel" id="cf-workers-panel">
+                    <div class="panel-title">
+                        <i class="bi bi-cloud"></i>
+                        <h2>Cloudflare Workers</h2>
+                        <div class="panel-actions">
+                            <button id="add-cf-worker" class="btn-primary">
+                                <i class="bi bi-plus-circle"></i> 添加Workers
+                            </button>
+                            <button id="refresh-cf-workers" class="refresh-btn">
+                                <i class="bi bi-arrow-clockwise"></i> 刷新列表
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cf-workers-container">
+                        <div id="cf-workers-list" class="cf-workers-list">
+                            <!-- Workers列表将在这里动态加载 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据库管理面板 -->
+                <div class="content-panel" id="database-management-panel">
+                    <div class="panel-title">
+                        <i class="bi bi-database"></i>
+                        <h2>数据库管理</h2>
+                    </div>
+
+                    <div class="database-container">
+                        <div class="database-stats">
+                            <h3>数据库统计</h3>
+                            <div id="database-stats-content">
+                                <!-- 统计信息将在这里动态加载 -->
+                            </div>
+                        </div>
+
+                        <div class="database-details">
+                            <h3>数据库详情</h3>
+                            <div class="database-filters">
+                                <select id="category-filter">
+                                    <option value="all">全部数据</option>
+                                    <option value="tokens">Token配置</option>
+                                    <option value="configs">系统配置</option>
+                                    <option value="usage">使用统计</option>
+                                    <option value="status">请求状态</option>
+                                </select>
+                                <button id="refresh-details" class="btn-primary">
+                                    <i class="bi bi-arrow-clockwise"></i> 刷新详情
+                                </button>
+                                <button id="export-details" class="btn-secondary">
+                                    <i class="bi bi-download"></i> 导出数据
+                                </button>
+                            </div>
+                            <div id="database-details-content">
+                                <!-- 详细信息将在这里动态加载 -->
+                            </div>
+                        </div>
+
+                        <div class="database-actions">
+                            <h3>数据库操作</h3>
+                            <div class="action-buttons">
+                                <button id="refresh-stats" class="btn-primary">
+                                    <i class="bi bi-arrow-clockwise"></i> 刷新统计
+                                </button>
+                                <button id="cleanup-database-mgmt" class="cleanup-btn">
+                                    <i class="bi bi-trash3"></i> 数据清理
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加页脚 -->
+        <footer>
+            <a href="https://linux.do/u/bifang/summary" target="_blank">开发者：彼方</a> | <a href="https://2api-docs.pages.dev/page/augment2api/func-intro" target="_blank">文档中心</a>
+        </footer>
+    </div>
+
+    <script>
+        // 检查会话是否有效
+        function checkSession() {
+            // 从Cookie中获取token
+            const cookies = document.cookie.split(';');
+            let token = null;
+            
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith('auth_token=')) {
+                    token = cookie.substring('auth_token='.length);
+                    break;
+                }
+            }
+            
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            
+            // 将token添加到所有API请求中
+            return token;
+        }
+
+        // 页面加载时检查会话
+        const authToken = checkSession();
+        if (!authToken) {
+            // 如果没有有效会话，不继续执行后续代码
+            throw new Error('No valid session');
+        }
+
+        // 为所有fetch请求添加认证头
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            // 创建新的options对象，避免修改原始对象
+            const newOptions = { ...options };
+            
+            // 确保headers对象存在
+            newOptions.headers = newOptions.headers || {};
+            
+            // 如果是对象形式，转换为Headers对象
+            if (!(newOptions.headers instanceof Headers)) {
+                const headers = new Headers(newOptions.headers);
+                headers.append('X-Auth-Token', authToken);
+                newOptions.headers = headers;
+            } else {
+                newOptions.headers.append('X-Auth-Token', authToken);
+            }
+            
+            return originalFetch(url, newOptions);
+        };
+
+        // 全局CF Workers函数
+        function testCFWorker(workerUrl) {
+            const testPath = prompt('请输入测试路径（默认: /v1/models）:', '/v1/models') || '/v1/models';
+
+            fetch('/api/cf-workers/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    worker_url: workerUrl,
+                    test_path: testPath
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.success) {
+                        alert(`测试成功！\n状态码: ${data.status_code}\n测试URL: ${data.test_url}`);
+                    } else {
+                        alert(`测试失败！\n状态码: ${data.status_code}\n测试URL: ${data.test_url}`);
+                    }
+                } else {
+                    alert('测试失败: ' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                alert('测试请求失败: ' + error.message);
+            });
+        }
+
+        function editCFWorker(id) {
+            // 简化版编辑，实际项目中可以做成模态框
+            alert('编辑功能开发中，请先删除后重新添加');
+        }
+
+        function deleteCFWorker(id, name) {
+            if (!confirm(`确定要删除Workers "${name}" 吗？`)) return;
+
+            fetch(`/api/cf-workers/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('删除成功！');
+                    if (typeof loadCFWorkers === 'function') {
+                        loadCFWorkers();
+                    }
+                } else {
+                    alert('删除失败: ' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                alert('请求失败: ' + error.message);
+            });
+        }
+
+        // 全局变量存储loadCFWorkers函数
+        let loadCFWorkers;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏切换
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggle-sidebar');
+            const menuItems = document.querySelectorAll('.menu-item');
+            const contentPanels = document.querySelectorAll('.content-panel');
+            
+            // 分页变量
+            let currentPage = 1;
+            let pageSize = 10;
+            let allTokens = [];
+            
+            // 侧边栏折叠/展开
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+            });
+            
+            // 菜单项切换
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // 移除所有菜单项的active类
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    // 为当前点击的菜单项添加active类
+                    this.classList.add('active');
+                    
+                    // 获取目标面板ID
+                    const targetId = this.getAttribute('data-target');
+                    
+                    // 隐藏所有内容面板
+                    contentPanels.forEach(panel => {
+                        panel.classList.remove('active');
+                    });
+                    
+                    // 显示目标面板
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+            
+            // 分页功能
+            const prevPageBtn = document.getElementById('prev-page');
+            const nextPageBtn = document.getElementById('next-page');
+            const currentPageSpan = document.getElementById('current-page');
+            const totalPagesSpan = document.getElementById('total-pages');
+            const pageSizeSelect = document.getElementById('page-size');
+            
+            // 页面大小变化
+            pageSizeSelect.addEventListener('change', function() {
+                pageSize = parseInt(this.value);
+                currentPage = 1;
+                fetchCurrentToken();
+            });
+            
+            // 上一页
+            prevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchCurrentToken();
+                }
+            });
+            
+            // 下一页
+            nextPageBtn.addEventListener('click', function() {
+                currentPage++;
+                fetchCurrentToken();
+            });
+            
+            // 添加节流功能，避免短时间内多次请求
+            function throttle(func, delay) {
+                let lastCall = 0;
+                return function(...args) {
+                    const now = new Date().getTime();
+                    if (now - lastCall < delay) {
+                        return;
+                    }
+                    lastCall = now;
+                    return func.apply(this, args);
+                };
+            }
+            
+            // 添加简单的缓存机制
+            const tokenCache = {
+                data: {},
+                timestamp: 0,
+                ttl: 10000, // 缓存有效期10秒
+                
+                get: function(key) {
+                    const now = new Date().getTime();
+                    if (this.data[key] && (now - this.timestamp < this.ttl)) {
+                        return this.data[key];
+                    }
+                    return null;
+                },
+                
+                set: function(key, data) {
+                    this.data[key] = data;
+                    this.timestamp = new Date().getTime();
+                }
+            };
+            
+            // 修改获取当前Token列表函数，使用后端分页
+            const fetchCurrentToken = throttle(function() {
+                // 显示加载动画
+                const refreshBtn = document.getElementById('refresh-token');
+                const tokenListElement = document.getElementById('token-list');
+                refreshBtn.classList.add('loading');
+                
+                // 构造缓存键
+                const cacheKey = `tokens_${currentPage}_${pageSize}`;
+                
+                // 检查缓存
+                const cachedData = tokenCache.get(cacheKey);
+                if (cachedData && !forceFresh) {
+                    // 使用缓存数据
+                    allTokens = cachedData.tokens || [];
+                    renderTokenList(cachedData.total || 0, cachedData.total_pages || 1);
+                    refreshBtn.classList.remove('loading');
+                    return;
+                }
+                
+                // 重置强制刷新标志
+                forceFresh = false;
+                
+                // 设置超时处理
+                const timeoutId = setTimeout(() => {
+                    refreshBtn.classList.remove('loading');
+                    tokenListElement.innerHTML = '<div class="error" style="display:block;">请求超时,请重试</div>';
+                }, 10000); // 10秒超时
+                
+                // 添加性能标记
+                const startTime = performance.now();
+                
+                fetch(`/api/tokens?page=${currentPage}&page_size=${pageSize}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    clearTimeout(timeoutId); // 清除超时定时器
+                    
+                    // 记录加载时间
+                    const loadTime = performance.now() - startTime;
+                    console.log(`Token列表加载耗时: ${loadTime.toFixed(2)}ms`);
+                    
+                    if (data.status === 'success') {
+                        // 缓存结果
+                        tokenCache.set(cacheKey, data);
+                        
+                        // 使用后端返回的token列表
+                        allTokens = data.tokens || [];
+                        
+                        // 更新分页信息
+                        const totalItems = data.total || 0;
+                        const totalPages = data.total_pages || 1;
+                        currentPage = data.page || 1;
+                        
+                        // 渲染token列表和分页控件
+                        renderTokenList(totalItems, totalPages);
+                    } else {
+                        tokenListElement.innerHTML = 
+                            '<div class="error" style="display:block;">获取Token列表失败: ' + (data.error || '未知错误') + '</div>';
+                    }
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId); // 清除超时定时器
+                    tokenListElement.innerHTML = 
+                        '<div class="error" style="display:block;">请求失败: ' + error.message + '</div>';
+                })
+                .finally(() => {
+                    refreshBtn.classList.remove('loading');
+                });
+            }, 300); // 300ms节流
+            
+            // 添加强制刷新标记
+            let forceFresh = false;
+            
+            // 刷新Token按钮事件
+            document.getElementById('refresh-token').addEventListener('click', function() {
+                forceFresh = true; // 强制刷新，忽略缓存
+                fetchCurrentToken();
+            });
+
+            // 修改渲染token列表函数，使用后端返回的分页信息
+            function renderTokenList(totalItems, totalPages) {
+                const tokenListElement = document.getElementById('token-list');
+                
+                // 如果没有token
+                if (totalItems === 0) {
+                    tokenListElement.innerHTML = '<div class="no-tokens">暂无可用Token，请点击"添加Token"获取</div>';
+                    
+                    // 隐藏分页控件
+                    document.getElementById('pagination-container').style.display = 'none';
+                    return;
+                }
+                
+                // 显示分页控件
+                document.getElementById('pagination-container').style.display = 'flex';
+                
+                // 更新分页信息显示
+                totalPagesSpan.textContent = totalPages;
+                currentPageSpan.textContent = currentPage;
+                
+                // 更新分页按钮状态
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages;
+                
+                // 检查token数量，如果过多则使用分批渲染
+                const useBatchRendering = allTokens.length > 50;
+                
+                // 优化：使用文档片段减少DOM重绘次数
+                const fragment = document.createDocumentFragment();
+                const tokenList = document.createElement('div');
+                tokenList.className = 'token-list';
+                fragment.appendChild(tokenList);
+                
+                // 清空现有内容并显示加载中
+                tokenListElement.innerHTML = '';
+                
+                if (useBatchRendering) {
+                    // 先显示加载状态
+                    const loadingEl = document.createElement('div');
+                    loadingEl.className = 'token-list-loading';
+                    loadingEl.innerHTML = '<div class="spinner"></div> <span>正在加载Token列表...</span>';
+                    tokenListElement.appendChild(loadingEl);
+                    
+                    // 使用requestAnimationFrame和分批处理来渲染大列表
+                    setTimeout(() => {
+                        renderTokensBatch(tokenList, 0, 20);
+                    }, 10);
+                    
+                    function renderTokensBatch(container, startIdx, batchSize) {
+                        // 移除加载状态
+                        const loadingEl = tokenListElement.querySelector('.token-list-loading');
+                        if (loadingEl) {
+                            loadingEl.remove();
+                        }
+                        
+                        // 添加当前批次的token
+                        const endIdx = Math.min(startIdx + batchSize, allTokens.length);
+                        
+                        for (let i = startIdx; i < endIdx; i++) {
+                            const tokenItem = createTokenItem(allTokens[i], i);
+                            container.appendChild(tokenItem);
+                        }
+                        
+                        // 如果还有更多token待渲染，安排下一批
+                        if (endIdx < allTokens.length) {
+                            // 添加临时"加载更多"指示器
+                            if (startIdx === 0) { // 只在第一批后添加DOM
+                                tokenListElement.appendChild(fragment);
+                            }
+                            
+                            setTimeout(() => {
+                                requestAnimationFrame(() => {
+                                    renderTokensBatch(container, endIdx, batchSize);
+                                });
+                            }, 0);
+                        } else {
+                            // 全部渲染完成，如果是第一批，添加到DOM
+                            if (startIdx === 0) {
+                                tokenListElement.appendChild(fragment);
+                            }
+                            
+                            // 应用Token可见性
+                            if (!tokenVisible) {
+                                applyTokenVisibility();
+                            }
+                        }
+                    }
+                } else {
+                    // 直接渲染所有token
+                    allTokens.forEach((tokenInfo, index) => {
+                        const tokenItem = createTokenItem(tokenInfo, index);
+                        tokenList.appendChild(tokenItem);
+                    });
+                    
+                    // 一次性替换DOM内容
+                    tokenListElement.appendChild(fragment);
+                    
+                    // 应用Token可见性
+                    if (!tokenVisible) {
+                        applyTokenVisibility();
+                    }
+                }
+                
+                // 辅助函数：创建token项元素
+                function createTokenItem(tokenInfo, index) {
+                    // 计算在当前页中的索引
+                    const displayIndex = index + 1 + (currentPage - 1) * pageSize;
+                    
+                    // 获取使用次数并设置样式类
+                    const chatUsageCount = tokenInfo.chat_usage_count || 0;
+                    const agentUsageCount = tokenInfo.agent_usage_count || 0;
+                    let usageClass = '';
+                    
+                    // 根据CHAT和AGENT模式的使用次数来确定样式类
+                    if (chatUsageCount < 1000 && agentUsageCount < 20) {
+                        usageClass = 'low';
+                    } else if (chatUsageCount < 2000 && agentUsageCount < 40) {
+                        usageClass = 'medium';
+                    } else {
+                        usageClass = 'high';
+                    }
+                    
+                    const tokenItem = document.createElement('div');
+                    tokenItem.className = 'token-item';
+                    tokenItem.dataset.index = index;
+                    tokenItem.innerHTML = `
+                        <div class="token-header" data-index="${index}">
+                            <div class="token-number">${displayIndex}</div>
+                            <div class="token-summary">
+                                ${tokenInfo.token}
+                                <span class="token-remark${!tokenInfo.remark ? ' empty' : ''}" data-token="${tokenInfo.token}" data-remark="${tokenInfo.remark || ''}">${tokenInfo.remark || '添加备注'}</span>
+                                ${tokenInfo.in_cool ? `
+                                <span class="cool-status-tooltip">
+                                    <i class="bi bi-snow cool-status"></i>
+                                    <span class="tooltip-text">冷却中，直到: ${new Date(tokenInfo.cool_end).toLocaleString()}</span>
+                                </span>` : ''}
+                            </div>
+                            <div class="token-usage-count">
+                                CHAT使用:&nbsp;&nbsp; <span class="${usageClass}">${chatUsageCount}</span>&nbsp;&nbsp;次 | AGENT使用:&nbsp;&nbsp; <span class="${usageClass}">${agentUsageCount}</span>&nbsp;&nbsp;次
+                            </div>
+                            <div class="token-toggle"><i class="bi bi-chevron-down"></i></div>
+                        </div>
+                        <div class="token-details">
+                            <div class="token-label">Token:</div>
+                            <div class="token-display">${tokenInfo.token}</div>
+                            <div class="token-label">租户URL:</div>
+                            <div class="token-display">${tokenInfo.tenant_url}</div>
+
+                            <div class="token-control-section">
+                                <div class="token-label">Token控制:</div>
+                                <div class="token-control-row">
+                                    <label class="token-switch">
+                                        <input type="checkbox" ${tokenInfo.enabled ? 'checked' : ''} data-token="${tokenInfo.token}" class="token-enabled-toggle">
+                                        <span class="slider"></span>
+                                        <span class="switch-label">启用Token</span>
+                                    </label>
+                                </div>
+
+                                <div class="token-label">使用限制:</div>
+                                <div class="token-limits-grid">
+                                    <div class="limit-item">
+                                        <label>请求间隔(秒):</label>
+                                        <input type="number" min="1" max="3600" value="${tokenInfo.request_interval || 3}" data-token="${tokenInfo.token}" class="request-interval-input">
+                                    </div>
+                                    <div class="limit-item">
+                                        <label>CHAT限制:</label>
+                                        <input type="number" min="0" value="${tokenInfo.chat_limit || 3000}" data-token="${tokenInfo.token}" class="chat-limit-input">
+                                    </div>
+                                    <div class="limit-item">
+                                        <label>AGENT限制:</label>
+                                        <input type="number" min="0" value="${tokenInfo.agent_limit || 50}" data-token="${tokenInfo.token}" class="agent-limit-input">
+                                    </div>
+                                    <div class="limit-item">
+                                        <label>每日限制:</label>
+                                        <input type="number" min="0" value="${tokenInfo.daily_limit || 1000}" data-token="${tokenInfo.token}" class="daily-limit-input">
+                                    </div>
+                                </div>
+
+                                <div class="token-usage-info">
+                                    <div class="usage-item">
+                                        <span>今日使用: ${tokenInfo.daily_usage || 0}/${tokenInfo.daily_limit || 1000}</span>
+                                    </div>
+                                </div>
+
+                                <div class="token-control-actions">
+                                    <button class="save-limits" data-token="${tokenInfo.token}">
+                                        <i class="bi bi-check"></i> 保存设置
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="token-actions">
+                                <button class="delete-token" data-token="${tokenInfo.token}">
+                                    <i class="bi bi-trash"></i> 删除
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    return tokenItem;
+                }
+                
+                // 使用事件委托处理所有点击事件
+                if (!document.querySelector('.token-list').hasEventListener) {
+                    document.querySelector('.token-list').addEventListener('click', function(e) {
+                        // 处理备注点击
+                        const remarkElement = e.target.closest('.token-remark');
+                        if (remarkElement) {
+                            e.stopPropagation(); // 阻止事件冒泡到header
+                            
+                            const token = remarkElement.dataset.token;
+                            const currentRemark = remarkElement.dataset.remark;
+                            
+                            // 创建弹出层
+                            const modal = document.createElement('div');
+                            modal.className = 'remark-input-modal';
+                            
+                            modal.innerHTML = `
+                                <div class="remark-input-container">
+                                    <h3>编辑备注</h3>
+                                    <input type="text" maxlength="30" placeholder="请输入备注（30字以内）" value="${currentRemark}">
+                                    <div class="char-count"><span>${currentRemark.length}</span>/30</div>
+                                    <div class="remark-input-actions">
+                                        <button class="secondary" onclick="this.closest('.remark-input-modal').remove()">取消</button>
+                                        <button class="save-remark" data-token="${token}">保存</button>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            document.body.appendChild(modal);
+                            
+                            // 获取输入框并聚焦
+                            const input = modal.querySelector('input');
+                            input.focus();
+                            
+                            // 更新字符计数
+                            input.addEventListener('input', () => {
+                                const count = input.value.length;
+                                modal.querySelector('.char-count span').textContent = count;
+                            });
+                            
+                            // 点击背景关闭弹窗
+                            modal.addEventListener('click', (e) => {
+                                if (e.target === modal) {
+                                    modal.remove();
+                                }
+                            });
+                            
+                            // 处理保存按钮点击
+                            modal.querySelector('.save-remark').addEventListener('click', async function() {
+                                const token = this.dataset.token;
+                                const newRemark = input.value.trim();
+                                
+                                try {
+                                    const response = await fetch(`/api/token/${token}/remark`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({ remark: newRemark })
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (data.status === 'success') {
+                                        // 更新所有具有相同token的备注元素
+                                        document.querySelectorAll(`.token-remark[data-token="${token}"]`).forEach(el => {
+                                            el.textContent = newRemark || '添加备注';
+                                            el.dataset.remark = newRemark;
+                                            
+                                            if (newRemark) {
+                                                el.classList.remove('empty');
+                                            } else {
+                                                el.classList.add('empty');
+                                            }
+                                        });
+                                        
+                                        // 关闭弹窗
+                                        modal.remove();
+                                    } else {
+                                        alert('更新备注失败: ' + (data.error || '未知错误'));
+                                    }
+                                } catch (error) {
+                                    alert('请求失败: ' + error.message);
+                                }
+                            });
+                            return; // 阻止后续处理
+                        }
+                        
+                        // 处理折叠/展开
+                        const headerElement = e.target.closest('.token-header');
+                        if (headerElement && !e.target.closest('.token-remark')) {
+                            const tokenItem = headerElement.closest('.token-item');
+                            const details = tokenItem.querySelector('.token-details');
+                            const toggle = tokenItem.querySelector('.token-toggle');
+                            
+                            details.classList.toggle('open');
+                            toggle.classList.toggle('open');
+                        }
+                    });
+                    
+                    // 标记已添加过事件监听器
+                    document.querySelector('.token-list').hasEventListener = true;
+                }
+            }
+            
+            // 为token列表添加事件委托,处理各种按钮点击
+            document.getElementById('token-list').addEventListener('click', function(e) {
+                // 检查点击的是否是删除按钮
+                if (e.target.closest('.delete-token')) {
+                    const deleteBtn = e.target.closest('.delete-token');
+                    const token = deleteBtn.getAttribute('data-token');
+
+                    if (confirm('确定要删除此Token吗？')) {
+                        // 发送删除请求
+                        fetch(`/api/token/${encodeURIComponent(token)}`, {
+                            method: 'DELETE'
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    // 刷新token列表
+                                    fetchCurrentToken();
+                                } else {
+                                    alert('删除失败: ' + (data.error || '未知错误'));
+                                }
+                            })
+                            .catch(error => {
+                                alert('请求失败: ' + error.message);
+                            });
+                    }
+                }
+
+                // 检查点击的是否是保存限制按钮
+                if (e.target.closest('.save-limits')) {
+                    const saveBtn = e.target.closest('.save-limits');
+                    const token = saveBtn.getAttribute('data-token');
+
+                    // 获取同一token的所有输入值
+                    const tokenItem = saveBtn.closest('.token-item');
+                    const requestInterval = parseInt(tokenItem.querySelector('.request-interval-input').value);
+                    const chatLimit = parseInt(tokenItem.querySelector('.chat-limit-input').value);
+                    const agentLimit = parseInt(tokenItem.querySelector('.agent-limit-input').value);
+                    const dailyLimit = parseInt(tokenItem.querySelector('.daily-limit-input').value);
+
+                    // 验证输入
+                    if (requestInterval < 1 || requestInterval > 3600) {
+                        alert('请求间隔必须在1-3600秒之间');
+                        return;
+                    }
+
+                    if (chatLimit < 0 || agentLimit < 0 || dailyLimit < 0) {
+                        alert('限制值不能为负数');
+                        return;
+                    }
+
+                    // 发送更新请求
+                    fetch(`/api/token/${encodeURIComponent(token)}/limits`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            request_interval: requestInterval,
+                            chat_limit: chatLimit,
+                            agent_limit: agentLimit,
+                            daily_limit: dailyLimit
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('设置保存成功！');
+                                // 刷新token列表
+                                fetchCurrentToken();
+                            } else {
+                                alert('保存失败: ' + (data.error || '未知错误'));
+                            }
+                        })
+                        .catch(error => {
+                            alert('请求失败: ' + error.message);
+                        });
+                }
+            });
+
+            // 为token列表添加change事件委托,处理开关切换
+            document.getElementById('token-list').addEventListener('change', function(e) {
+                // 检查是否是token启用开关
+                if (e.target.classList.contains('token-enabled-toggle')) {
+                    const checkbox = e.target;
+                    const token = checkbox.getAttribute('data-token');
+                    const enabled = checkbox.checked;
+
+                    // 发送更新请求
+                    fetch(`/api/token/${encodeURIComponent(token)}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            enabled: enabled
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                console.log(`Token ${token} ${enabled ? '已启用' : '已禁用'}`);
+                            } else {
+                                alert('更新状态失败: ' + (data.error || '未知错误'));
+                                // 恢复开关状态
+                                checkbox.checked = !enabled;
+                            }
+                        })
+                        .catch(error => {
+                            alert('请求失败: ' + error.message);
+                            // 恢复开关状态
+                            checkbox.checked = !enabled;
+                        });
+                }
+            });
+
+            // 添加登出处理逻辑
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                if(confirm('确定要登出吗？')) {
+                    fetch('/api/logout', {
+                        method: 'POST',
+                        headers: {
+                            'X-Auth-Token': authToken
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.status === 'success') {
+                            // 清除Cookie
+                            document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                            // 重定向到登录页
+                            window.location.href = '/login';
+                        } else {
+                            alert('登出失败: ' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('登出请求失败: ' + error.message);
+                    });
+                }
+            });
+
+            // 批量检测token
+            document.getElementById('check-all-tokens').addEventListener('click', function() {
+                const button = this;
+                button.classList.add('loading');
+                
+                fetch('/api/check-tokens')
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.status === 'success') {
+                            // 创建或获取检测结果显示元素
+                            let checkResult = document.querySelector('.check-result');
+                            if(!checkResult) {
+                                checkResult = document.createElement('div');
+                                checkResult.className = 'check-result';
+                                document.querySelector('.panel-title').after(checkResult);
+                            }
+                            
+                            // 显示检测结果
+                            checkResult.textContent = `检测完成! 共检测 ${data.total} 个Token，更新 ${data.updated} 个Token租户地址，禁用 ${data.disabled} 个无效Token`;
+                            checkResult.style.display = 'block';
+                            
+                            // 如果有更新或禁用，则刷新token列表
+                            if(data.updated > 0 || data.disabled > 0) {
+                                fetchCurrentToken();
+                            }
+                            
+                            // 5秒后隐藏提示
+                            setTimeout(() => {
+                                checkResult.style.display = 'none';
+                            }, 5000);
+                        } else {
+                            alert('检测失败: ' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求失败: ' + error.message);
+                    })
+                    .finally(() => {
+                        button.classList.remove('loading');
+                    });
+            });
+
+            // 获取授权地址按钮事件
+            document.getElementById('get-auth-url').addEventListener('click', function() {
+                const button = this;
+                const btnText = button.querySelector('.btn-text');
+                const originalText = btnText.textContent;
+                
+                // 显示加载状态
+                button.disabled = true;
+                btnText.textContent = '获取中...';
+                
+                // 请求授权地址
+                fetch('/auth')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.authorize_url) {
+                            // 显示授权地址
+                            const authUrlElement = document.getElementById('auth-url');
+                            authUrlElement.textContent = data.authorize_url;
+                            authUrlElement.style.display = 'block';
+                        } else {
+                            alert('获取授权地址失败: ' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求失败: ' + error.message);
+                    })
+                    .finally(() => {
+                        // 恢复按钮状态
+                        button.disabled = false;
+                        btnText.textContent = originalText;
+                    });
+            });
+
+            // 验证JSON格式
+            function isValidJSON(str) {
+                try {
+                    JSON.parse(str);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // 验证授权响应格式
+            function validateAuthResponse(response) {
+                try {
+                    const data = JSON.parse(response);
+                    // 检查必要字段
+                    if (!data.code || !data.state || !data.tenant_url) {
+                        return { valid: false, message: '缺少必要字段 (code, state, tenant_url)' };
+                    }
+                    return { valid: true, data: data };
+                } catch (e) {
+                    return { valid: false, message: 'JSON格式无效: ' + e.message };
+                }
+            }
+
+            // 提交授权响应按钮事件
+            document.getElementById('submit-auth').addEventListener('click', function() {
+                const button = this;
+                const btnText = button.querySelector('.btn-text');
+                const originalText = btnText.textContent;
+                const responseText = document.getElementById('auth-response').value.trim();
+                const validationMessage = document.getElementById('validation-message');
+                const submitResult = document.getElementById('submit-result');
+                
+                // 重置消息
+                validationMessage.style.display = 'none';
+                submitResult.style.display = 'none';
+                
+                // 验证输入
+                if (!responseText) {
+                    validationMessage.textContent = '请输入授权响应';
+                    validationMessage.style.display = 'block';
+                    return;
+                }
+                
+                // 验证JSON格式
+                if (!isValidJSON(responseText)) {
+                    validationMessage.textContent = 'JSON格式无效，请检查输入';
+                    validationMessage.style.display = 'block';
+                    return;
+                }
+                
+                // 验证授权响应格式
+                const validation = validateAuthResponse(responseText);
+                if (!validation.valid) {
+                    validationMessage.textContent = validation.message;
+                    validationMessage.style.display = 'block';
+                    return;
+                }
+                
+                // 显示加载状态
+                button.disabled = true;
+                btnText.textContent = '处理中...';
+                
+                // 提交授权响应
+                fetch('/callback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: responseText
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // 显示成功消息
+                            submitResult.textContent = 'Token获取成功！';
+                            submitResult.style.display = 'block';
+                            
+                            // 清空输入框
+                            document.getElementById('auth-response').value = '';
+                            
+                            // 刷新Token列表
+                            setTimeout(() => {
+                                fetchCurrentToken();
+                                
+                                // 切换到Token列表面板
+                                document.querySelector('.menu-item[data-target="token-list-panel"]').click();
+                            }, 1000);
+                        } else {
+                            // 显示错误消息但不影响样式
+                            validationMessage.textContent = '获取Token失败: ' + (data.error || '未知错误');
+                            validationMessage.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        // 显示错误消息但不影响样式
+                        validationMessage.textContent = '请求失败: ' + error.message;
+                        validationMessage.style.display = 'block';
+                    })
+                    .finally(() => {
+                        // 恢复按钮状态
+                        button.disabled = false;
+                        btnText.textContent = originalText;
+                    });
+            });
+
+            // 初始加载token列表
+            fetchCurrentToken();
+            
+            // 添加Token隐藏/显示功能
+            let tokenVisible = true;
+            const toggleTokenVisibilityBtn = document.getElementById('toggle-token-visibility');
+            
+            toggleTokenVisibilityBtn.addEventListener('click', function() {
+                tokenVisible = !tokenVisible;
+                
+                // 更新按钮状态和文本
+                if (tokenVisible) {
+                    this.innerHTML = '<i class="bi bi-eye-slash"></i> 隐藏Token';
+                    this.classList.remove('active');
+                } else {
+                    this.innerHTML = '<i class="bi bi-eye"></i> 显示Token';
+                    this.classList.add('active');
+                }
+                
+                // 应用模糊效果到所有Token展示区域
+                applyTokenVisibility();
+            });
+            
+            // 应用Token可见性设置到列表中
+            function applyTokenVisibility() {
+                // 获取所有Token显示元素
+                const tokenElements = document.querySelectorAll('.token-summary, .token-display');
+                
+                tokenElements.forEach(element => {
+                    if (tokenVisible) {
+                        element.classList.remove('token-blur');
+                    } else {
+                        element.classList.add('token-blur');
+                    }
+                });
+            }
+            
+            // 在渲染Token列表后应用可见性设置
+            const originalRenderTokenList = renderTokenList;
+            renderTokenList = function(totalItems, totalPages) {
+                originalRenderTokenList(totalItems, totalPages);
+                
+                // 如果当前状态是隐藏的，则应用模糊效果
+                if (!tokenVisible) {
+                    applyTokenVisibility();
+                }
+            };
+
+            // 数据库清理功能
+            let selectedCleanupAction = null;
+
+            // 数据清理按钮点击事件（Token列表页面）
+            document.getElementById('cleanup-database').addEventListener('click', function() {
+                document.getElementById('cleanup-modal').style.display = 'block';
+            });
+
+            // 数据库管理页面的数据清理按钮点击事件
+            document.getElementById('cleanup-database-mgmt').addEventListener('click', function() {
+                document.getElementById('cleanup-modal').style.display = 'block';
+            });
+
+            // 清理选项点击事件
+            document.querySelectorAll('.cleanup-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除其他选项的选中状态
+                    document.querySelectorAll('.cleanup-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+
+                    // 选中当前选项
+                    this.classList.add('selected');
+                    selectedCleanupAction = this.getAttribute('data-action');
+                });
+            });
+
+            // 关闭清理模态框
+            window.closeCleanupModal = function() {
+                document.getElementById('cleanup-modal').style.display = 'none';
+                selectedCleanupAction = null;
+                // 移除所有选中状态
+                document.querySelectorAll('.cleanup-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+            };
+
+            // 确认清理
+            window.confirmCleanup = function() {
+                if (!selectedCleanupAction) {
+                    alert('请选择要清理的数据类型');
+                    return;
+                }
+
+                // 特殊确认对话框用于删除所有token
+                if (selectedCleanupAction === 'all_tokens') {
+                    if (!confirm('⚠️ 危险操作！\n\n您确定要删除所有Token吗？\n这将删除所有token及其相关数据，操作无法恢复！\n\n请再次确认：')) {
+                        return;
+                    }
+                }
+
+                const confirmButton = document.querySelector('.cleanup-confirm');
+                confirmButton.disabled = true;
+                confirmButton.textContent = '清理中...';
+
+                // 发送清理请求
+                fetch('/api/cleanup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: selectedCleanupAction
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(`清理完成！\n${data.data.message}\n处理项目数: ${data.data.cleaned_count}`);
+
+                        // 如果删除了所有token，刷新页面
+                        if (selectedCleanupAction === 'all_tokens') {
+                            window.location.reload();
+                        } else {
+                            // 刷新token列表
+                            fetchCurrentToken();
+                        }
+                    } else {
+                        alert('清理失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    alert('清理请求失败: ' + error.message);
+                })
+                .finally(() => {
+                    confirmButton.disabled = false;
+                    confirmButton.textContent = '确认清理';
+                    closeCleanupModal();
+                });
+            };
+
+            // 点击模态框外部关闭
+            document.getElementById('cleanup-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCleanupModal();
+                }
+            });
+
+            // 系统配置管理功能
+            function loadSystemConfigs() {
+                fetch('/api/system/configs')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            renderSystemConfigs(data.configs);
+                        } else {
+                            document.getElementById('config-list').innerHTML =
+                                '<div class="error">加载配置失败: ' + (data.error || '未知错误') + '</div>';
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('config-list').innerHTML =
+                            '<div class="error">请求失败: ' + error.message + '</div>';
+                    });
+            }
+
+            function renderSystemConfigs(configs) {
+                const configList = document.getElementById('config-list');
+
+                if (!configs || configs.length === 0) {
+                    configList.innerHTML = '<div class="no-configs">暂无系统配置</div>';
+                    return;
+                }
+
+                // 按分类分组
+                const groupedConfigs = {};
+                configs.forEach(config => {
+                    if (!groupedConfigs[config.category]) {
+                        groupedConfigs[config.category] = [];
+                    }
+                    groupedConfigs[config.category].push(config);
+                });
+
+                let html = '';
+                Object.keys(groupedConfigs).forEach(category => {
+                    html += `<h4 style="margin: 20px 0 10px 0; color: var(--primary-color);">${getCategoryName(category)}</h4>`;
+
+                    groupedConfigs[category].forEach(config => {
+                        const isPassword = config.key.includes('pwd') || config.key.includes('password');
+                        const inputType = isPassword ? 'password' : 'text';
+                        const isProxyUrl = config.key === 'proxy_url';
+
+                        html += `
+                            <div class="config-item">
+                                <div class="config-header">
+                                    <span class="config-key">${config.key}</span>
+                                    <span class="config-category">${category}</span>
+                                </div>
+                                <div class="config-description">${config.description}</div>
+                                <div class="config-value">
+                                    <input type="${inputType}" class="config-input"
+                                           value="${config.value}"
+                                           data-key="${config.key}"
+                                           placeholder="请输入${config.description}">
+                                    <button class="config-save" data-key="${config.key}">
+                                        <i class="bi bi-check"></i> 保存
+                                    </button>
+                                    ${isProxyUrl ? `
+                                        <button class="config-test-proxy" data-key="${config.key}" title="测试代理连接">
+                                            <i class="bi bi-wifi"></i> 测试
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+
+                configList.innerHTML = html;
+
+                // 添加保存事件监听器
+                document.querySelectorAll('.config-save').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const key = this.dataset.key;
+                        const input = document.querySelector(`input[data-key="${key}"]`);
+                        const value = input.value;
+
+                        saveSystemConfig(key, value, this);
+                    });
+                });
+
+                // 添加代理测试事件监听器
+                document.querySelectorAll('.config-test-proxy').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const key = this.dataset.key;
+                        const input = document.querySelector(`input[data-key="${key}"]`);
+                        const proxyUrl = input.value.trim();
+
+                        if (!proxyUrl) {
+                            alert('请先输入代理URL');
+                            return;
+                        }
+
+                        testProxyConnection(proxyUrl, this);
+                    });
+                });
+            }
+
+            function getCategoryName(category) {
+                const categoryNames = {
+                    'security': '🔒 安全配置',
+                    'api': '🔌 API配置',
+                    'network': '🌐 网络配置',
+                    'development': '🛠️ 开发配置'
+                };
+                return categoryNames[category] || category;
+            }
+
+            function saveSystemConfig(key, value, button) {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i> 保存中...';
+                button.disabled = true;
+
+                // 获取配置的描述和分类
+                const configItem = button.closest('.config-item');
+                const description = configItem.querySelector('.config-description').textContent;
+                const category = configItem.querySelector('.config-category').textContent;
+
+                fetch('/api/system/config', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        key: key,
+                        value: value,
+                        description: description,
+                        category: category
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        button.innerHTML = '<i class="bi bi-check"></i> 已保存';
+                        button.style.backgroundColor = '#28a745';
+
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.style.backgroundColor = '';
+                            button.disabled = false;
+                        }, 2000);
+                    } else {
+                        alert('保存配置失败: ' + (data.error || '未知错误'));
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    alert('请求失败: ' + error.message);
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+            }
+
+            // 测试代理连接
+            function testProxyConnection(proxyUrl, button) {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i> 测试中...';
+                button.disabled = true;
+
+                fetch('/api/system/test-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        proxy_url: proxyUrl
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+
+                    if (data.success) {
+                        showProxyTestResult(data, true);
+                    } else {
+                        showProxyTestResult(data, false);
+                    }
+                })
+                .catch(error => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    alert('测试请求失败: ' + error.message);
+                });
+            }
+
+            // 显示代理测试结果
+            function showProxyTestResult(result, success) {
+                const modal = document.createElement('div');
+                modal.className = 'proxy-test-modal';
+                modal.innerHTML = `
+                    <div class="proxy-test-modal-content">
+                        <div class="proxy-test-header">
+                            <h3>
+                                ${success ? '🎉' : '❌'} 代理测试结果
+                                <button class="close-modal" onclick="this.closest('.proxy-test-modal').remove()">×</button>
+                            </h3>
+                        </div>
+                        <div class="proxy-test-body">
+                            <div class="test-summary ${success ? 'success' : 'error'}">
+                                <strong>${result.message}</strong>
+                            </div>
+
+                            <div class="test-info">
+                                <p><strong>代理URL:</strong> ${result.proxy_url}</p>
+                                <p><strong>后端URL:</strong> ${result.backend_url}</p>
+                                <p><strong>测试时间:</strong> ${result.timestamp}</p>
+                            </div>
+
+                            <div class="test-details">
+                                <h4>详细测试结果:</h4>
+                                ${formatTestResults(result.test_results)}
+                            </div>
+                        </div>
+                        <div class="proxy-test-footer">
+                            <button onclick="this.closest('.proxy-test-modal').remove()">关闭</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // 点击背景关闭
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+
+            // 格式化测试结果
+            function formatTestResults(testResults) {
+                let html = '<div class="test-results-grid">';
+
+                Object.keys(testResults).forEach(testName => {
+                    const test = testResults[testName];
+                    const testDisplayName = getTestDisplayName(testName);
+                    const statusIcon = test.success ? '✅' : '❌';
+                    const statusClass = test.success ? 'success' : 'error';
+
+                    html += `
+                        <div class="test-result-item ${statusClass}">
+                            <div class="test-result-header">
+                                <span class="test-icon">${statusIcon}</span>
+                                <span class="test-name">${testDisplayName}</span>
+                                <span class="test-duration">${test.duration || 'N/A'}</span>
+                            </div>
+                            <div class="test-result-message">${test.message}</div>
+                            <div class="test-result-details">
+                                <small>URL: ${test.url}</small>
+                                <small>状态码: ${test.status_code}</small>
+                                ${test.error ? `<small class="error-text">错误: ${test.error}</small>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                return html;
+            }
+
+            // 获取测试显示名称
+            function getTestDisplayName(testName) {
+                const names = {
+                    'health_check': '健康检查',
+                    'models_endpoint': '模型列表API',
+                    'security_check': '安全检查'
+                };
+                return names[testName] || testName;
+            }
+
+            // 数据库统计功能
+            function loadDatabaseStats() {
+                fetch('/api/system/stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            renderDatabaseStats(data.stats);
+                        } else {
+                            document.getElementById('database-stats-content').innerHTML =
+                                '<div class="error">加载统计失败: ' + (data.error || '未知错误') + '</div>';
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('database-stats-content').innerHTML =
+                            '<div class="error">请求失败: ' + error.message + '</div>';
+                    });
+            }
+
+            // 数据库详情功能
+            function loadDatabaseDetails(category = 'all') {
+                const detailsContent = document.getElementById('database-details-content');
+                detailsContent.innerHTML = '<div class="loading-details"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
+
+                fetch(`/api/system/details?category=${category}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            renderDatabaseDetails(data.details, data.total);
+                        } else {
+                            detailsContent.innerHTML =
+                                '<div class="error">加载详情失败: ' + (data.error || '未知错误') + '</div>';
+                        }
+                    })
+                    .catch(error => {
+                        detailsContent.innerHTML =
+                            '<div class="error">请求失败: ' + error.message + '</div>';
+                    });
+            }
+
+            function renderDatabaseDetails(details, total) {
+                const detailsContent = document.getElementById('database-details-content');
+
+                if (!details || details.length === 0) {
+                    detailsContent.innerHTML = '<div class="no-details">暂无数据</div>';
+                    return;
+                }
+
+                let html = `
+                    <div class="details-info">
+                        <p>共找到 <strong>${total}</strong> 条记录</p>
+                    </div>
+                    <div class="details-container">
+                        <table class="details-table">
+                            <thead>
+                                <tr>
+                                    <th>键名</th>
+                                    <th>分类</th>
+                                    <th>类型</th>
+                                    <th>值</th>
+                                    <th>大小</th>
+                                    <th>描述</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                details.forEach(detail => {
+                    const categoryClass = `category-${detail.category}`;
+                    const valueDisplay = formatValue(detail.value, detail.type);
+                    const sizeDisplay = formatSize(detail.size);
+
+                    html += `
+                        <tr>
+                            <td class="key-cell">${detail.key}</td>
+                            <td>
+                                <span class="category-badge ${categoryClass}">
+                                    ${getCategoryDisplayName(detail.category)}
+                                </span>
+                            </td>
+                            <td>${detail.type}</td>
+                            <td class="value-cell">${valueDisplay}</td>
+                            <td class="size-info">${sizeDisplay}</td>
+                            <td>${detail.description}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                detailsContent.innerHTML = html;
+            }
+
+            function formatValue(value, type) {
+                if (type === 'json') {
+                    const jsonStr = JSON.stringify(value, null, 2);
+                    if (jsonStr.length > 200) {
+                        return `<div class="json-value">${jsonStr.substring(0, 200)}...</div>`;
+                    }
+                    return `<div class="json-value">${jsonStr}</div>`;
+                } else {
+                    if (typeof value === 'string' && value.length > 100) {
+                        return value.substring(0, 100) + '...';
+                    }
+                    return value;
+                }
+            }
+
+            function formatSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            }
+
+            function getCategoryDisplayName(category) {
+                const names = {
+                    'tokens': 'Token',
+                    'configs': '配置',
+                    'usage': '使用',
+                    'status': '状态',
+                    'usage_stats': '统计',
+                    'other': '其他'
+                };
+                return names[category] || category;
+            }
+
+            function renderDatabaseStats(stats) {
+                const statsContent = document.getElementById('database-stats-content');
+
+                const html = `
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.token_count || 0}</div>
+                            <div class="stat-label">Token数量</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.config_count || 0}</div>
+                            <div class="stat-label">系统配置</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.daily_usage_count || 0}</div>
+                            <div class="stat-label">每日使用记录</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.request_status_count || 0}</div>
+                            <div class="stat-label">请求状态记录</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.total_keys || 0}</div>
+                            <div class="stat-label">总数据键数</div>
+                        </div>
+                    </div>
+                `;
+
+                statsContent.innerHTML = html;
+            }
+
+            // 事件监听器
+            document.getElementById('refresh-configs').addEventListener('click', loadSystemConfigs);
+            document.getElementById('refresh-stats').addEventListener('click', loadDatabaseStats);
+            document.getElementById('refresh-details').addEventListener('click', function() {
+                const category = document.getElementById('category-filter').value;
+                loadDatabaseDetails(category);
+            });
+
+            // 分类筛选器变化事件
+            document.getElementById('category-filter').addEventListener('change', function() {
+                loadDatabaseDetails(this.value);
+            });
+
+            // 导出详情数据
+            document.getElementById('export-details').addEventListener('click', function() {
+                const category = document.getElementById('category-filter').value;
+
+                fetch(`/api/system/details?category=${category}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const blob = new Blob([JSON.stringify(data.details, null, 2)], {
+                                type: 'application/json'
+                            });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `database_details_${category}_${new Date().toISOString().split('T')[0]}.json`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        } else {
+                            alert('导出失败: ' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('导出请求失败: ' + error.message);
+                    });
+            });
+
+            // 导出配置
+            document.getElementById('export-configs').addEventListener('click', function() {
+                fetch('/api/system/export')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const blob = new Blob([JSON.stringify(data, null, 2)], {
+                                type: 'application/json'
+                            });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'system_config.json';
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        } else {
+                            alert('导出失败: ' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('导出请求失败: ' + error.message);
+                    });
+            });
+
+            // 导入配置
+            document.getElementById('import-configs').addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data.configs && Array.isArray(data.configs)) {
+                                importSystemConfigs(data.configs);
+                            } else {
+                                alert('无效的配置文件格式');
+                            }
+                        } catch (error) {
+                            alert('解析配置文件失败: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            });
+
+            function importSystemConfigs(configs) {
+                if (!confirm(`确定要导入 ${configs.length} 个配置项吗？这将覆盖现有的同名配置。`)) {
+                    return;
+                }
+
+                fetch('/api/system/import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ configs: configs })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(`导入完成！\n成功: ${data.success_count}\n失败: ${data.failed_count}\n总计: ${data.total_count}`);
+                        loadSystemConfigs(); // 重新加载配置
+                    } else {
+                        alert('导入失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    alert('导入请求失败: ' + error.message);
+                });
+            }
+
+            // Cloudflare Workers管理功能
+            loadCFWorkers = function() {
+                const workersList = document.getElementById('cf-workers-list');
+                workersList.innerHTML = '<div class="loading">加载中...</div>';
+
+                fetch('/api/cf-workers')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderCFWorkersList(data.workers || []);
+                    } else {
+                        workersList.innerHTML = '<div class="error">加载失败: ' + (data.error || '未知错误') + '</div>';
+                    }
+                })
+                .catch(error => {
+                    workersList.innerHTML = '<div class="error">请求失败: ' + error.message + '</div>';
+                });
+            }
+
+            function renderCFWorkersList(workers) {
+                const workersList = document.getElementById('cf-workers-list');
+
+                if (workers.length === 0) {
+                    workersList.innerHTML = '<div class="no-workers">暂无Cloudflare Workers配置，点击"添加Workers"开始配置</div>';
+                    return;
+                }
+
+                let html = '';
+                workers.forEach(worker => {
+                    const statusClass = worker.status === 'active' ? 'status-active' : 'status-inactive';
+                    html += `
+                        <div class="worker-item">
+                            <div class="worker-info">
+                                <h4>${worker.name}</h4>
+                                <p class="worker-url">${worker.worker_url}</p>
+                                <p class="worker-description">${worker.description || '无描述'}</p>
+                                <span class="worker-status ${statusClass}">${worker.status === 'active' ? '启用' : '禁用'}</span>
+                            </div>
+                            <div class="worker-actions">
+                                <button onclick="testCFWorker('${worker.worker_url}')" class="btn-test">
+                                    <i class="bi bi-play-circle"></i> 测试
+                                </button>
+                                <button onclick="editCFWorker(${worker.id})" class="btn-edit">
+                                    <i class="bi bi-pencil"></i> 编辑
+                                </button>
+                                <button onclick="deleteCFWorker(${worker.id}, '${worker.name}')" class="btn-delete">
+                                    <i class="bi bi-trash"></i> 删除
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                workersList.innerHTML = html;
+            }
+
+            function addCFWorker() {
+                const name = prompt('请输入Workers名称:');
+                if (!name) return;
+
+                const workerUrl = prompt('请输入Workers URL (例如: https://your-worker.your-subdomain.workers.dev):');
+                if (!workerUrl) return;
+
+                const description = prompt('请输入描述（可选）:') || '';
+
+                fetch('/api/cf-workers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        worker_url: workerUrl,
+                        description: description,
+                        status: 'active'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('添加成功！');
+                        if (typeof loadCFWorkers === 'function') {
+                            loadCFWorkers();
+                        }
+                    } else {
+                        alert('添加失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    alert('请求失败: ' + error.message);
+                });
+            }
+
+            // CF Workers按钮事件
+            document.getElementById('add-cf-worker').addEventListener('click', addCFWorker);
+            document.getElementById('refresh-cf-workers').addEventListener('click', loadCFWorkers);
+
+            // 菜单切换时加载对应数据
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+
+                    if (targetId === 'system-config-panel') {
+                        loadSystemConfigs();
+                    } else if (targetId === 'database-management-panel') {
+                        loadDatabaseStats();
+                        loadDatabaseDetails(); // 同时加载详情
+                    } else if (targetId === 'cf-workers-panel') {
+                        loadCFWorkers();
+                    }
+                });
+            });
+        });
+    </script>
+    </div>
+
+    <!-- 数据清理模态框 -->
+    <div id="cleanup-modal" class="cleanup-modal">
+        <div class="cleanup-modal-content">
+            <h3>数据库清理</h3>
+            <p>请选择要清理的数据类型：</p>
+
+            <div class="cleanup-options">
+                <div class="cleanup-option" data-action="usage_stats">
+                    <h4>🔄 重置使用统计</h4>
+                    <p>清零所有token的累计使用次数（CHAT/AGENT/总计），不影响token本身</p>
+                </div>
+
+                <div class="cleanup-option" data-action="daily_usage">
+                    <h4>📅 清理每日使用数据</h4>
+                    <p>删除所有token的每日使用记录，今日统计将重新开始</p>
+                </div>
+
+                <div class="cleanup-option" data-action="expired_data">
+                    <h4>🗑️ 清理过期数据</h4>
+                    <p>删除7天前的每日使用数据和1小时前的请求状态数据</p>
+                </div>
+
+                <div class="cleanup-option" data-action="all_tokens">
+                    <h4>⚠️ 删除所有Token</h4>
+                    <p style="color: #dc3545; font-weight: bold;">危险操作！将删除所有token及其相关数据，无法恢复</p>
+                </div>
+            </div>
+
+            <div class="cleanup-actions">
+                <button class="cleanup-cancel" onclick="closeCleanupModal()">取消</button>
+                <button class="cleanup-confirm" onclick="confirmCleanup()">确认清理</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+.env
+
+.log
+
+logs/
+
+.idea
+
+.vscode
+
+augment2api
+
+.codelf

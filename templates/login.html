@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Augment2Api - 登录</title>
+    <link rel="icon" href="../static/augment.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="../static/augment.svg" type="image/x-icon">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: black;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="password"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="login-container">
+        <h1>Augment面板登录</h1>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="password">访问密码</label>
+                <input type="password" id="password" name="password" placeholder="请输入访问密码" required>
+            </div>
+            <button type="submit">登录</button>
+            <div id="error-message" class="error-message">密码错误，请重试</div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('login-form');
+            const errorMessage = document.getElementById('error-message');
+            
+            // 检查是否有错误消息参数
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('error') === 'invalid_password') {
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = '密码错误，请重试';
+            } else if (urlParams.get('error') === 'token_expired') {
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = '会话已过期，请重新登录';
+            }
+            
+            // 背景动画
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // 线条数量
+            const lineCount = 15;
+            const lines = [];
+            
+            // 创建线条
+            for (let i = 0; i < lineCount; i++) {
+                lines.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    length: Math.random() * 100 + 50,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.5 + 0.1,
+                    opacity: Math.random() * 0.2 + 0.1
+                });
+            }
+            
+            function drawLines() {
+                ctx.clearRect(0, 0, width, height);
+                
+                for (let i = 0; i < lineCount; i++) {
+                    const line = lines[i];
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(line.x, line.y);
+                    ctx.lineTo(
+                        line.x + Math.cos(line.angle) * line.length,
+                        line.y + Math.sin(line.angle) * line.length
+                    );
+                    
+                    ctx.strokeStyle = `rgba(67, 97, 238, ${line.opacity})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    // 更新线条位置
+                    line.x += Math.cos(line.angle) * line.speed;
+                    line.y += Math.sin(line.angle) * line.speed;
+                    
+                    // 如果线条移出画布，重新放置
+                    if (line.x < -line.length || line.x > width + line.length || 
+                        line.y < -line.length || line.y > height + line.length) {
+                        line.x = Math.random() * width;
+                        line.y = Math.random() * height;
+                        line.angle = Math.random() * Math.PI * 2;
+                    }
+                }
+                
+                requestAnimationFrame(drawLines);
+            }
+            
+            drawLines();
+            
+            // 窗口大小变化时重新设置画布尺寸
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const password = document.getElementById('password').value;
+                
+                // 发送登录请求
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 登录成功，保存会话到Cookie并跳转到管理页面
+                        // 设置安全的Cookie，确保路径正确
+                        document.cookie = "auth_token=" + data.token + "; path=/; max-age=86400;";
+                        console.log("设置Cookie成功: auth_token=" + data.token);
+
+                        setTimeout(() => {
+                            window.location.href = '/admin';
+                        }, 300);
+                    } else {
+                        // 显示错误消息
+                        errorMessage.style.display = 'block';
+                        errorMessage.textContent = data.error || '登录失败，请重试';
+                    }
+                })
+                .catch(error => {
+                    console.error('登录请求失败:', error);
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = '网络错误，请重试';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
